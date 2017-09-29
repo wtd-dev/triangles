@@ -1,0 +1,16 @@
+﻿body {
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.row {
+    padding-bottom: 5px;
+}
+
+input {
+    width: 40px;
+}
+
+.spacedRow {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}

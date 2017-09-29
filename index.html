@@ -1,0 +1,210 @@
+﻿<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Triangles</title>
+    <link rel="stylesheet" href="app.css" type="text/css" />
+    <script src="app.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+    <script type="text/javascript">
+        // Driver function, main entry
+        function RefreshImage()
+        {
+            resetCanvas();
+            for (i = 0; i < numRows(); i++)
+            {
+                // half because each triangle, bottom and top takes a column spot
+                for (j = 0; j < numCols() / 2; j++)
+                {
+                    drawBottomTriangle(j * numPixels(), i * numPixels(), numPixels());
+                    drawTopTriangle(j * numPixels(), i * numPixels(), numPixels())
+                }
+            }
+        }
+
+        // Called during refresh to begin with a blank slate, literally
+        function resetCanvas() {
+            triangleCanvas.height = numRows() * numPixels();
+            triangleCanvas.width = numCols() / 2 * numPixels();
+            triangleContext.clearRect(0, 0, triangleCanvas.width, triangleCanvas.height);
+        }
+
+        // Returns the value of the input on the page
+        function numRows()
+        {
+            return parseInt(document.getElementById("numRows").value);
+        }
+
+        // Returns the value of the input on the page
+        function numCols()
+        {
+            return parseInt(document.getElementById("numCols").value);
+        }
+
+        // Returns the value of the input on the page
+        function numPixels()
+        {
+            return parseInt(document.getElementById("numPixels").value);
+        }
+
+        // Draws a triangle on the canvas that represents the bottom half of a square
+        function drawBottomTriangle(startX, startY)
+        {
+            // start upper left, to left bottom, to right bottom, close causes triangle
+            var destX = startX + numPixels();
+            var destY = startY + numPixels();
+            triangleContext.beginPath();
+            triangleContext.moveTo(startX, startY);
+            triangleContext.lineTo(startX, destY);
+            triangleContext.lineTo(destX, destY);
+            triangleContext.closePath();
+
+            drawOutline();
+            drawFill("#5B9BD5");
+        }
+
+        // Draws a triangle on the canvas that represents the top half of a square
+        function drawTopTriangle(startX, startY)
+        {
+            // start upper left, to right top, to right bottom, close causes triangle
+            var destX = startX + numPixels();
+            var destY = startY + numPixels();
+            triangleContext.beginPath();
+            triangleContext.moveTo(startX, startY);
+            triangleContext.lineTo(destX, startY);
+            triangleContext.lineTo(destX, destY);
+            triangleContext.closePath();
+
+            drawOutline();
+            drawFill("#5B9BD5");
+        }
+
+        // Used from both top and bottom
+        function drawOutline()
+        {
+            triangleContext.lineWidth = 2;
+            triangleContext.strokeStyle = '#C2C5C8';
+            triangleContext.stroke();
+        }
+
+        // Used from both top and bottom
+        function drawFill(color)
+        {
+            triangleContext.fillStyle = color;
+            triangleContext.fill();
+        }
+
+        // On hover of the canvas
+        function getMousePos(canvas, evt)
+        {
+            var rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.clientX - rect.left,
+                y: evt.clientY - rect.top
+            };
+        }
+
+        // Returns the letter code of the row number based on a mouse coordinate
+        function calcRowFromPos(y)
+        {
+            return charFromNum(Math.floor(y / numPixels()));
+        }
+
+        // Accounts for triangles, returning the column number from mouse coordinates
+        function calcColFromPos(mousePos)
+        {
+            // two variables one represents the column position based on triangles, the other squares
+            var triangleColPos = Math.floor(mousePos.x / numPixels()) + 1;
+            var colPos = Math.floor(mousePos.x / numPixels()); 
+            // to offset half columns because triangles
+            if (triangleColPos > 1)
+            {
+                triangleColPos = triangleColPos + triangleColPos - 1;
+            }
+            else
+            {
+                triangleColPos = 1;
+            }
+            var rowPos = Math.floor(mousePos.y / numPixels());
+            // if we are further right in the column overall, increment
+            // to represent the top triangle
+            // first subtract out all but one row and column 
+            var adjustedX = mousePos.x - (colPos) * numPixels();
+            var adjustedY = mousePos.y - (rowPos) * numPixels();
+            if (adjustedX > adjustedY)
+                return triangleColPos + 1;
+            else
+                return triangleColPos;
+        }
+
+        // ASCII lookup
+        function charFromNum(num)
+        {
+            var A_CODE = 65;
+            return String.fromCharCode(num + A_CODE);
+        }
+
+        var triangleCanvas;
+        var triangleContext;
+
+        window.onload = function ()
+        {
+            triangleCanvas = document.querySelector("#TriangleCanvas");
+            triangleContext = triangleCanvas.getContext("2d");
+
+            triangleCanvas.addEventListener('mousemove', function (evt) {
+                var mousePos = getMousePos(triangleCanvas, evt);
+                document.getElementById("spnRowCol").innerText =
+                    String(calcRowFromPos(mousePos.y)) + String(calcColFromPos(mousePos));
+            }, false);
+
+            RefreshImage();
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Triangles</h1>
+        <div class="row">
+            <div class="col-sm-3 col-xs-3">
+                Number of Rows:
+            </div>
+            <div class="col-sm-9 col-xs-9">
+                <input id="numRows" type="range" max="26" min="1" value="6" onchange="RefreshImage();"/>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-3 col-xs-3">
+                Number of Columns:
+            </div>
+            <div class="col-sm-9 col-xs-9">
+                <input id="numCols" type="range" max="100" min="2" value="12" step="2" onchange="RefreshImage();"/>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-3 col-xs-3">
+                Pixels:
+            </div>
+            <div class="col-sm-9 col-xs-9">
+                <input id="numPixels" type="range" max="100" min="10" value="10" onchange="RefreshImage();" />
+            </div>
+        </div>
+        <!--Canvas Row for the Triangle Image-->
+        <div class="row">
+            <div class="col-sm-12 col-xs-12">
+                <div class="spacedRow">
+                    Hover for Row/Column Coordinates
+                </div>
+                <div class="spacedRow">
+                    ROW/COLUMN: <b><span id="spnRowCol">N/A</span></b>
+                </div>
+                <div class="spacedRow">
+                    <canvas id="TriangleCanvas" />
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
